@@ -64,7 +64,7 @@ The CubeMX project is included in:
 
 The oscilloscope supports five acquisition modes:
 ```
-| Mode | Sampling rate | Acquisition window |
+| Mode | Sampling rate  | Acquisition window |
 |------|---------------:|-------------------:|
 | 1    | 2 MHz          | ~512 µs            |
 | 2    | 200 kHz        | ~5.12 ms           |
@@ -94,7 +94,7 @@ The trigger channel is selected in the firmware using:
 
 Once a trigger point is found, the samples from all three channels are transmitted relative to that trigger position.
 
-#PC Software
+##PC Software
 
 The PC application is written in Python and uses:
 
@@ -105,7 +105,7 @@ Matplotlib for plotting
 The application displays the three ADC channels in real time and automatically updates the horizontal time scale when the sampling mode changes.
 Two buttons allow the user to switch between faster and slower acquisition modes.
 
-#Installation
+## Installation
 1. Install Python
 Python 3.9 or newer is recommended.
 
