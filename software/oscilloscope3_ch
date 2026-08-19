@@ -1,0 +1,147 @@
+import serial
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
+from matplotlib.animation import FuncAnimation
+
+PORT = "/dev/cu.usbmodemXXXXX" #MacOS
+#PORT = "COMxx" #Windows
+
+BAUD = 921600
+
+SAMPLES = 1024
+CHANNELS = 3
+DATA_SIZE = SAMPLES * CHANNELS * 2
+
+ADC_VREF = 3.3
+ADC_MAX = 4095
+
+TIME_WINDOW_TO_RATE = { 
+    0x01: 2_000_000,
+    0x02: 200_000,
+    0x03: 20_000,
+    0x04: 2_000,
+    0x05: 204,
+}
+MODE_LIST = sorted(TIME_WINDOW_TO_RATE.keys())
+
+current_window_id = MODE_LIST[0]
+sample_rate = TIME_WINDOW_TO_RATE[current_window_id]
+time = np.arange(SAMPLES) / sample_rate * 1e6
+
+ser = serial.Serial(PORT, BAUD, timeout=2)
+ser.reset_input_buffer()
+
+voltage1 = np.zeros(SAMPLES)
+voltage2 = np.zeros(SAMPLES)
+voltage3 = np.zeros(SAMPLES)
+
+
+def read_frame():
+    while True:
+        b = ser.read(1)
+        if not b:
+            return None
+        if b[0] != 0xAA:
+            continue
+        b2 = ser.read(1)
+        if not b2:
+            return None
+        if b2[0] == 0x55:
+            break
+        elif b2[0] == 0xAA:
+            continue
+
+    tw = ser.read(1)
+    if not tw:
+        return None
+    window_id = tw[0]
+
+    data = ser.read(DATA_SIZE)
+    if len(data) != DATA_SIZE:
+        return None
+
+    values = np.frombuffer(data, dtype="<u2")
+    return window_id, values[0:SAMPLES], values[SAMPLES:2*SAMPLES], values[2*SAMPLES:3*SAMPLES]
+
+#Buttons, Labels
+
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.2) 
+
+line1, = ax.plot(time, voltage1, label="ADC1")
+line2, = ax.plot(time, voltage2, label="ADC2")
+line3, = ax.plot(time, voltage3, label="ADC3")
+
+ax.set_ylim(0, ADC_VREF)
+ax.set_xlim(0, time[-1])
+ax.set_xlabel("Time (us)")
+ax.set_ylabel("Voltage (V)")
+ax.grid()
+ax.legend()
+
+ax_faster = plt.axes([0.70, 0.02, 0.12, 0.06])
+ax_slower = plt.axes([0.84, 0.02, 0.12, 0.06])
+btn_faster = Button(ax_faster, "▲")
+btn_slower = Button(ax_slower, "▼")
+
+
+def send_mode(mode_id):
+    ser.write(bytes([mode_id]))
+
+
+def on_faster(event):
+    idx = MODE_LIST.index(current_window_id) if current_window_id in MODE_LIST else 0
+    idx = max(idx - 1, 0)
+    send_mode(MODE_LIST[idx])
+
+
+def on_slower(event):
+    idx = MODE_LIST.index(current_window_id) if current_window_id in MODE_LIST else 0
+    idx = min(idx + 1, len(MODE_LIST) - 1)
+    send_mode(MODE_LIST[idx])
+
+
+btn_faster.on_clicked(on_faster)
+btn_slower.on_clicked(on_slower)
+
+
+def update(frame):
+    global voltage1, voltage2, voltage3
+    global current_window_id, sample_rate, time
+
+    data = read_frame()
+    if data is None:
+        return line1, line2, line3
+
+    window_id, adc1, adc2, adc3 = data
+
+    if window_id != current_window_id:
+        current_window_id = window_id
+        sample_rate = TIME_WINDOW_TO_RATE.get(window_id, TIME_WINDOW_TO_RATE[MODE_LIST[0]])
+        time = np.arange(SAMPLES) / sample_rate * 1e6
+
+        unit = "us" if sample_rate >= 100_000 else "ms"
+        scaled_time = time if unit == "us" else time / 1000.0
+
+        line1.set_xdata(scaled_time)
+        line2.set_xdata(scaled_time)
+        line3.set_xdata(scaled_time)
+        ax.set_xlim(0, scaled_time[-1])
+        ax.set_xlabel(f"Time ({unit})")
+
+        fig.canvas.draw()
+
+    voltage1 = adc1.astype(np.float64) * ADC_VREF / ADC_MAX
+    voltage2 = adc2.astype(np.float64) * ADC_VREF / ADC_MAX
+    voltage3 = adc3.astype(np.float64) * ADC_VREF / ADC_MAX
+
+    line1.set_ydata(voltage1)
+    line2.set_ydata(voltage2)
+    line3.set_ydata(voltage3)
+
+    return line1, line2, line3
+
+
+ani = FuncAnimation(fig, update, interval=100, blit=True)
+plt.show()
