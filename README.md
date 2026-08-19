@@ -23,6 +23,7 @@ This project is intended primarily as an educational and experimental oscillosco
 
 
 ## Repository structure
+```
 stm32osc3ch/
 ├── firmware/
 │   ├── Core/
@@ -34,7 +35,7 @@ stm32osc3ch/
 │   └── requirements.txt
 ├── README.md
 └── LICENSE
-License
+```
 
 ## Hardware
 
@@ -62,7 +63,7 @@ The CubeMX project is included in:
 ## Sampling Modes
 
 The oscilloscope supports five acquisition modes:
-
+```
 | Mode | Sampling rate | Acquisition window |
 |------|---------------:|-------------------:|
 | 1    | 2 MHz          | ~512 µs            |
@@ -70,18 +71,18 @@ The oscilloscope supports five acquisition modes:
 | 3    | 20 kHz         | ~51.2 ms           |
 | 4    | 2 kHz          | ~512 ms            |
 | 5    | 204 Hz         | ~5.02 s            |
-
+```
 The last mode uses 204 Hz rather than exactly 200 Hz, so its acquisition window is approximately 5.02 seconds.
 
 ## Data Format
 
 Each packet sent from the STM32 to the PC has the following structure:
-
+```
 +------------+------+----------------+----------------+----------------+
 | Header     | Mode | ADC1           | ADC2           | ADC3           |
 | 2 bytes    | 1 B  | 1024 samples   | 1024 samples   | 1024 samples   |
 +------------+------+----------------+----------------+----------------+
-
+```
 Each ADC sample is transmitted as a 16-bit value. The Python front end splits the packet into three 1024-sample arrays and converts the ADC readings to voltage using a 3.3 V reference and a 12-bit ADC range.
 
 ## Trigger
