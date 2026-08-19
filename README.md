@@ -3,6 +3,8 @@
 A simple 3-channel digital oscilloscope based on the STM32F207ZG and its three built-in ADCs.
 The project uses the STM32F207's ADCs in **Triple Regular Simultaneous Mode** to acquire three analog signals at the same time. The captured data is transferred to a PC over UART and displayed using a Python application.
 
+This is part of a video series — this entry covers a 3-channel version of the oscilloscope. Future videos will push the sampling rate further and add quality-of-life improvements.
+
 This project is intended primarily as an educational and experimental oscilloscope rather than a replacement for a commercial oscilloscope.
 
 ## Features
