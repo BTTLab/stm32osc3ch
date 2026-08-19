@@ -113,31 +113,35 @@ Python 3.9 or newer is recommended.
 
 2. Install dependencies
 From the software/ directory:
+```
 pip install -r requirements.txt
-
-3. Configure the serial port
+```
+4. Configure the serial port
 
 Open:
+```
 software/oscilloscope3_ch
-
+```
 and change:
+```
 PORT = "/dev/cu.usbmodemXXXXX" for macOS.
-
+```
 For Windows, use: PORT = "COMxx"
 
 For example:
-
+```
 PORT = "COM5"
 4. Run the application
 python oscilloscope3_ch
+```
 Firmware
 
 The firmware project was generated using STM32CubeMX / STM32CubeIDE and uses the STM32F2 HAL.
 
 Open:
-
+```
 firmware/OSCILLOSCOPE_V2_FINAL.ioc
-
+```
 in STM32CubeIDE / STM32CubeMX.
 
 The project targets:
