@@ -1,6 +1,7 @@
 # STM32 3-Channel DIY Oscilloscope
 
 https://youtu.be/UNdJqzoM1z8
+
 A simple 3-channel digital oscilloscope based on the STM32F207ZG and its three built-in ADCs.
 The project uses the STM32F207's ADCs in **Triple Regular Simultaneous Mode** to acquire three analog signals at the same time. The captured data is transferred to a PC over UART and displayed using a Python application.
 
